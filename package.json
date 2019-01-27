@@ -1,0 +1,15 @@
+{
+  "name": "ranking-tcc",
+  "version": "1.0.0",
+  "description": "Node program to rank articles",
+  "main": "index.js",
+  "dependencies": {
+    "googleapis": "27.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "João Souza",
+  "license": "MIT"
+}
