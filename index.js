@@ -1,6 +1,12 @@
 const fs = require('fs');
 const readline = require('readline');
 const {google} = require('googleapis');
+const xl = require('exceljs');
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
 
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
@@ -13,7 +19,7 @@ const TOKEN_PATH = 'token.json';
 fs.readFile('credentials.json', (err, content) => {
   if (err) return console.log('Error loading client secret file:', err);
   // Authorize a client with credentials, then call the Google Sheets API.
-  authorize(JSON.parse(content), calculaRanking);
+  authorize(JSON.parse(content), recursiveQuestion);
 });
 
 /**
@@ -47,10 +53,7 @@ function getNewToken(oAuth2Client, callback) {
     scope: SCOPES,
   });
   console.log('Authorize this app by visiting this url:', authUrl);
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
+
   rl.question('Enter the code from that page here: ', (code) => {
     rl.close();
     oAuth2Client.getToken(code, (err, token) => {
@@ -66,15 +69,117 @@ function getNewToken(oAuth2Client, callback) {
   });
 }
 
+var recursiveQuestion = function(auth) {
+  let ans = '';
+  rl.question('Calculate relevance? (y|n) ', function(answer) {
+    ans = answer;
+    
+    if(ans === 'n'){
+      createGoogleSheet();
+    }
+    else if (ans === 'y') {
+      defineFonteArtigos(auth);
+    }
+    else {
+      console.log("Wrong Input!!");
+      recursiveQuestion();
+    }
+  });
+}
+
+var defineFonteArtigos = function (auth){
+  rl.question('Excel (x) or Google Sheets (g) ? ', function(answer) {
+    if(answer == 'x'){
+      abreExcel();
+      return;
+    }
+    else if (answer == 'g') {
+      calculaRankingGoogleSheets(auth);
+    }
+    else {
+      console.log("Wrong Input!!");
+      defineFonteArtigos();
+    }
+  });
+}
+
+function abreExcel(){
+  rl.question('Type in the xlsx filename: ', (answer) => {
+    rl.close();
+    calculaRankingExcel(answer);
+    return;
+  });
+}
+
+function calculaRankingExcel(filename) {
+  var path = require('path');
+
+  let options = {
+    filename: path.resolve(filename),
+  };
+
+  let wb = new xl.stream.xlsx.WorkbookWriter(options);
+
+  
+
+
+  // let wb = new xl.Workbook();
+  // var path = require('path');
+  // var filePath = path.resolve(filename);
+  
+  // console.log(`Opening file '${filename}'...`)
+
+  // wb.xlsx.readFile(filePath)
+  // .then( function() {
+  //       console.log('Calculating Ranking...')
+  //       let ws = wb.getWorksheet(1);
+  //       let maiorFator = 1;
+  //       let maiorVel = 1;
+  //       let total = 0; 
+  //       let seen = 0;
+
+  //       ws.eachRow( (row, idx) => {
+  //           let fator = isNaN(row.getCell('F')) ? 0 : row.getCell('F');
+  //           let vel = isNaN(row.getCell('G')) ? 0 : row.getCell('G');
+
+  //           total = isNaN(row.getCell('F')) ? total : total+1;
+        
+  //           maiorFator = fator > maiorFator ? fator : maiorFator;
+  //           maiorVel = vel > maiorVel ? vel : maiorVel;
+  //       });
+
+  //       ws.eachRow( (row, idx) => {
+  //           let ano = isNaN(row.getCell('E')) ? 0 : row.getCell('E') / 2019;
+  //           let fator = isNaN(row.getCell('F')) ? 0 : row.getCell('F') / maiorFator;
+  //           let vel = isNaN(row.getCell('G')) ? 0 : row.getCell('G') / maiorVel;
+
+  //           let result = ano + fator + vel;
+            
+  //           row.getCell('J').value = result;
+
+  //           seen++;
+
+  //           process.stdout.write(`Total: ${seen}/${total} (${seen/total*100}%)       \r`)
+  //       });
+
+  //       wb.xlsx.writeFile('ranking.xlsx')
+  //         .then( () => console.log('*** Ranking Finished ***') )
+  //   });
+}
+
+
 /**
  * @param {google.auth.OAuth2} auth The authenticated Google OAuth client.
  */
-function calculaRanking(auth) {
+function calculaRankingGoogleSheets(auth) {
+
+  console.log("Processing ranking...");
+
   let delay = 0;
   const sheets = google.sheets({version: 'v4', auth});
   sheets.spreadsheets.values.get({
     spreadsheetId: '17-ohbIToQjbOFY5MIgH_aP2XVIqOGhKM5O8nYufQiok',
-    range: 'Ranking!E2:G',
+    range: 'Ranking!E2:G10',
   }, (err, res) => {
     if (err) return console.log('The API returned an error: ' + err);
     const rows = res.data.values;
@@ -118,7 +223,11 @@ function calculaRanking(auth) {
                 console.log('ERRO')
                 //process.exit(1);
               }
-              process.stdout.write(`Total: ${++seen}/${total}\r`);
+              seen++;
+              let date = new Date(null);
+              date.setSeconds((total-seen)*2);
+              var time = date.toISOString().substr(11, 8);
+              process.stdout.write(`Total: ${seen}/${total} (${seen/total*100}%) - ${time} \r`);
             })
           }, delay);
           delay += 2000;
@@ -128,4 +237,10 @@ function calculaRanking(auth) {
       console.log('No data found.');
     }
   });
+
+  createGoogleSheet();
+}
+
+function createGoogleSheet(){
+  console.log("CreateSheet...")
 }
