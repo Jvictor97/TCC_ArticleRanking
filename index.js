@@ -112,59 +112,56 @@ function abreExcel(){
 }
 
 function calculaRankingExcel(filename) {
-  var path = require('path');
-
-  let options = {
-    filename: path.resolve(filename),
-  };
-
-  let wb = new xl.stream.xlsx.WorkbookWriter(options);
-
-  
-
-
-  // let wb = new xl.Workbook();
   // var path = require('path');
-  // var filePath = path.resolve(filename);
+
+  // let options = {
+  //   filename: path.resolve(filename),
+  // };
+
+  // let wb = new xl.stream.xlsx.WorkbookWriter(options);
+
+  let wb = new xl.Workbook();
+  var path = require('path');
+  var filePath = path.resolve(filename);
   
-  // console.log(`Opening file '${filename}'...`)
+  console.log(`Opening file '${filename}'...`)
 
-  // wb.xlsx.readFile(filePath)
-  // .then( function() {
-  //       console.log('Calculating Ranking...')
-  //       let ws = wb.getWorksheet(1);
-  //       let maiorFator = 1;
-  //       let maiorVel = 1;
-  //       let total = 0; 
-  //       let seen = 0;
+  wb.xlsx.readFile(filePath)
+  .then( function() {
+        console.log('Calculating Ranking...')
+        let ws = wb.getWorksheet(1);
+        let maiorFator = 1;
+        let maiorVel = 1;
+        let total = 0; 
+        let seen = 0;
 
-  //       ws.eachRow( (row, idx) => {
-  //           let fator = isNaN(row.getCell('F')) ? 0 : row.getCell('F');
-  //           let vel = isNaN(row.getCell('G')) ? 0 : row.getCell('G');
+        ws.eachRow( (row, idx) => {
+            let fator = isNaN(row.getCell('F')) ? 0 : row.getCell('F');
+            let vel = isNaN(row.getCell('G')) ? 0 : row.getCell('G');
 
-  //           total = isNaN(row.getCell('F')) ? total : total+1;
+            total = isNaN(row.getCell('F')) ? total : total+1;
         
-  //           maiorFator = fator > maiorFator ? fator : maiorFator;
-  //           maiorVel = vel > maiorVel ? vel : maiorVel;
-  //       });
+            maiorFator = fator > maiorFator ? fator : maiorFator;
+            maiorVel = vel > maiorVel ? vel : maiorVel;
+        });
 
-  //       ws.eachRow( (row, idx) => {
-  //           let ano = isNaN(row.getCell('E')) ? 0 : row.getCell('E') / 2019;
-  //           let fator = isNaN(row.getCell('F')) ? 0 : row.getCell('F') / maiorFator;
-  //           let vel = isNaN(row.getCell('G')) ? 0 : row.getCell('G') / maiorVel;
+        ws.eachRow( (row, idx) => {
+            let ano = isNaN(row.getCell('E')) ? 0 : row.getCell('E') / 2019;
+            let fator = isNaN(row.getCell('F')) ? 0 : row.getCell('F') / maiorFator;
+            let vel = isNaN(row.getCell('G')) ? 0 : row.getCell('G') / maiorVel;
 
-  //           let result = ano + fator + vel;
+            let result = ano + fator + vel;
             
-  //           row.getCell('J').value = result;
+            row.getCell('J').value = result;
 
-  //           seen++;
+            seen++;
 
-  //           process.stdout.write(`Total: ${seen}/${total} (${seen/total*100}%)       \r`)
-  //       });
+            process.stdout.write(`Total: ${seen}/${total} (${seen/total*100}%)       \r`)
+        });
 
-  //       wb.xlsx.writeFile('ranking.xlsx')
-  //         .then( () => console.log('*** Ranking Finished ***') )
-  //   });
+        wb.xlsx.writeFile('ranking.xlsx')
+          .then( () => console.log('*** Ranking Finished ***') )
+    });
 }
 
 
