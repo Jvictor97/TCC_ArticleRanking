@@ -138,6 +138,7 @@ function calculaRankingExcel(filename) {
 
         ws.eachRow( (row, idx) => {
             console.log("Estou na linha: "+idx);
+            
             // let fator = isNaN(row.getCell('F')) ? 0 : row.getCell('F');
             // let vel = isNaN(row.getCell('G')) ? 0 : row.getCell('G');
 
